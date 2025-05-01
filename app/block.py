@@ -84,7 +84,21 @@ class Block:
         and max_depth) to 0.  (All attributes can be updated later, as
         appropriate.)
         """
-        pass
+        self.position = (0, 0)
+        self.size = 0
+        self.level = level
+        self.max_depth = 0
+        self.highlighted = False
+        self.parent = None
+
+        if children is None:
+            self.children = []
+            self.colour = colour
+        else:
+            self.children = children
+            self.colour = None
+            for child in self.children:
+                child.parent = self
 
     def rectangles_to_draw(self) -> List[Tuple[Tuple[int, int, int],
                                                Tuple[int, int],
