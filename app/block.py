@@ -169,7 +169,21 @@ class Block:
         If <direction> is 1, rotate clockwise.  If <direction> is 3, rotate
         counterclockwise. If this Block has no children, do nothing.
         """
-        pass
+        if not self.children:
+            return
+
+        #clockwise
+        if direction == 1:
+            self.children[0], self.children[3], self.children[2], self.children[1] = \
+            self.children[1], self.children[0], self.children[3], self.children[2]
+
+        #counterclockwise
+        elif direction == 3:
+            self.children[0], self.children[1], self.children[2], self.children[3] = \
+            self.children[3], self.children[0], self.children[1], self.children[2]
+
+        for child in self.children:
+            child.rotate(direction)
 
     def smash(self) -> bool:
         """Smash this block.
