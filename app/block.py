@@ -152,7 +152,13 @@ class Block:
         If <direction> is 1, swap vertically.  If <direction> is 0, swap
         horizontally. If this Block has no children, do nothing.
         """
-        pass
+        if not self.children:
+            return
+        if direction == 0:
+            self.children[0], self.children[3] = self.children[3], self.children[0]
+        if direction == 1:
+            self.children[1], self.children[2] = self.children[2], self.children[1]
+
 
     def rotate(self, direction: int) -> None:
         """Rotate this Block and all its descendants.
