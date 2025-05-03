@@ -130,7 +130,21 @@ class Block:
 
         The order of the rectangles does not matter.
         """
-        pass
+        rects = []
+        x, y = self.position
+        size = self.size
+
+        if not self.children:
+            rects.append((self.colour, (x, y), (size, size), 0))
+            rects.append((FRAME_COLOUR, (x, y), (size, size), 5))
+        else:
+            for child in self.children:
+                rects.extend(child.rectangles_to_draw())
+
+        if self.highlighted:
+            rects.append((HIGHLIGHT_COLOUR, (x, y), (size, size), 7))
+
+        return rects
 
     def swap(self, direction: int) -> None:
         """Swap the child Blocks of this Block.
