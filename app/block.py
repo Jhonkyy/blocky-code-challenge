@@ -159,6 +159,9 @@ class Block:
         if direction == 1:
             self.children[1], self.children[2] = self.children[2], self.children[1]
 
+        for child in self.children:
+            child.swap(direction)
+
 
     def rotate(self, direction: int) -> None:
         """Rotate this Block and all its descendants.
