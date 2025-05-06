@@ -45,12 +45,44 @@ class Game:
                  num_human: int,
                  random_players: int,
                  smart_players: List[int]) -> None:
-        """Initialize this game, as described in the Assignment 2 handout.
+        """Initialize a new game."""
+        # Create a Renderer for this game
+        self.renderer = Renderer(len(smart_players) + num_human + random_players)
 
-        Precondition:
-            2 <= max_depth <= 5
-        """
-        pass
+        # Generate a random goal type (BlobGoal or PerimeterGoal)
+        goal_class = random.choice([BlobGoal, PerimeterGoal])
+        goal_colour = random.choice(COLOUR_LIST)
+        goal = goal_class(goal_colour)
+
+        # Generate a random board with the given max depth
+        self.board = random_init(0, max_depth)
+
+        # Generate players
+        self.players = []
+        player_id = 0
+
+        # Create human players
+        for _ in range(num_human):
+            self.players.append(HumanPlayer(self.renderer, player_id, goal))
+            player_id += 1
+
+        # Create random players
+        for _ in range(random_players):
+            self.players.append(RandomPlayer(self.renderer, player_id, goal))
+            player_id += 1
+
+        # Create smart players with their respective difficulty levels
+        for difficulty in smart_players:
+            self.players.append(SmartPlayer(self.renderer, player_id, goal, difficulty))
+            player_id += 1
+
+        # Assign a random colour to each player and display their goal
+        for player in self.players:
+            player.goal = goal_class(random.choice(COLOUR_LIST))
+            self.renderer.display_goal(player)
+
+        # Draw the initial board
+        self.renderer.draw(self.board, 0)
 
     def run_game(self, num_turns: int) -> None:
         """Run the game for the number of turns specified.
