@@ -198,7 +198,23 @@ class Block:
 
         Return True if this Block was smashed and False otherwise.
         """
-        pass
+        if self.parent is None or self.level == self.max_depth:
+            return False
+
+        self.children = []
+
+        new_children = []
+        for _ in range(4):
+            colour = random.choice(COLOUR_LIST)
+            child = Block(self.level + 1, colour)
+            child.max_depth = self.max_depth
+            child.parent = self
+            new_children.append(child)
+
+        self.children = new_children
+
+        self.colour = None
+        return True
 
     def update_block_locations(self, top_left: Tuple[int, int],
                                size: int) -> None:
