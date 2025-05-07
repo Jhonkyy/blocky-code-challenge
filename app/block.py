@@ -251,7 +251,20 @@ class Block:
         Preconditions:
         - 0 <= level <= max_depth
         """
-        pass
+        if self.level == level:
+            return self
+
+        if not self.children:
+            return self
+
+        if self.position[0] <= location[0] <= self.position[0] + self.size and \
+            self.position[1] <= location[1] <= self.position[1] + self.size:
+            for child in self.children:
+                selected = child.get_selected_block(location, level)
+                if selected is not None:
+                    return selected
+
+        return self
 
     def flatten(self) -> List[List[Tuple[int, int, int]]]:
         """Return a two-dimensional list representing this Block as rows
