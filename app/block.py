@@ -279,8 +279,16 @@ class Block:
 
         L[0][0] represents the unit cell in the upper left corner of the Block.
         """
-        pass
+        length = 2 ** (self.max_depth - self.level)
+        m = [[] for _ in range(length)]
 
+        if not self.children:
+            for col in m:
+                for _ in range(length):
+                    col.append(self.colour)
+            return m
+
+        return m
 
 def random_init(level: int, max_depth: int) -> 'Block':
     """Return a randomly-generated Block with level <level> and subdivided
