@@ -264,25 +264,18 @@ class Block:
 
     def flatten(self) -> List[List[Tuple[int, int, int]]]:
         """Return a two-dimensional list representing this Block as rows
-        and columns of unit cells."""
-        size = int(2 ** (self.max_depth - self.level))  # Asegurar que size sea un entero
-        grid = [[None for _ in range(size)] for _ in range(size)]
+        and columns of unit cells.
 
-        if not self.children:
-            for i in range(size):
-                for j in range(size):
-                    grid[i][j] = self.colour
-        else:
-            half = size // 2
-            grids = [child.flatten() for child in self.children]
-            for i in range(half):
-                for j in range(half):
-                    grid[i][j + half] = grids[0][i][j]  # Upper-right
-                    grid[i][j] = grids[1][i][j]         # Upper-left
-                    grid[i + half][j] = grids[2][i][j]  # Lower-left
-                    grid[i + half][j + half] = grids[3][i][j]  # Lower-right
+        Return a list of lists L, where,
+        for 0 <= i, j < 2^{max_depth - self.level}
+            - L[i] represents column i and
+            - L[i][j] represents the unit cell at column i and row j.
+        Each unit cell is represented by 3 ints for the colour
+        of the block at the cell location[i][j]
 
-        return grid
+        L[0][0] represents the unit cell in the upper left corner of the Block.
+        """
+        pass
 
 
 def random_init(level: int, max_depth: int) -> 'Block':
