@@ -176,7 +176,7 @@ class Block:
         # Reordenar los hijos según la dirección de rotación
         if direction == 1:  # Rotación en sentido horario
             self.children = [self.children[3], self.children[0], self.children[1], self.children[2]]
-        elif direction == 3:  # Rotación en sentido antihorario
+        elif direction == -1:  # Rotación en sentido antihorario
             self.children = [self.children[1], self.children[2], self.children[3], self.children[0]]
 
         # Actualizar las posiciones y tamaños de los bloques hijos
@@ -271,19 +271,27 @@ class Block:
 
         L[0][0] represents the unit cell in the upper left corner of the Block.
         """
-        size = int(2 ** (self.max_depth - self.level))  # Asegurar que size sea un entero
+        size = int(2 ** (self.max_depth - self.level))
+
         if not self.children:
-            # Si no tiene hijos, llenar con el color del bloque
-            return [[self.colour] * size for _ in range(size)]
-        else:
-            # Combinar las matrices de los hijos
-            top = [self.children[1].flatten(), self.children[0].flatten()]
-            bottom = [self.children[2].flatten(), self.children[3].flatten()]
-            return [
-                top[0][i] + top[1][i] for i in range(size // 2)
-            ] + [
-                bottom[0][i] + bottom[1][i] for i in range(size // 2)
-            ]
+            return [[self.colour for _ in range(size)] for _ in range(size)]
+
+        # Flatten children
+        ur = self.children[0].flatten()
+        ul = self.children[1].flatten()
+        ll = self.children[2].flatten()
+        lr = self.children[3].flatten()
+
+        half = size // 2
+
+        # Top rows: UR + UL
+        top_rows = [ul[i] + ur[i] for i in range(half)]
+
+        # Bottom rows: LL + LR
+        bottom_rows = [ll[i] + lr[i] for i in range(half)]
+
+        return top_rows + bottom_rows
+
 
 
 def random_init(level: int, max_depth: int) -> 'Block':
@@ -352,7 +360,7 @@ if __name__ == '__main__':
     print("=== tiny tree ===")
     # We have not set max_depth to anything meaningful, so it still has the
     # value given by the initializer (0 and False).
-    print_block(b0, True)
+    print_block_indented(b0, True)
 
     b1 = Block(0, children=[
         Block(1, children=[
@@ -381,7 +389,7 @@ if __name__ == '__main__':
     # representation invariants of the class, so we shouldn't use such a
     # tree in our real code, but we can use it to see what print_block
     # does with a slightly bigger tree.
-    print_block(b1, True)
+    print_block_indented(b1, 0, True)
 
     # Now let's make a random tree.
     # random_init has the job of setting all attributes except position and
@@ -392,4 +400,4 @@ if __name__ == '__main__':
     b2.update_block_locations((0, 0), 750)
     print("\n=== random tree ===")
     # All attributes should have sensible values when we print this tree.
-    print_block(b2, True)
+    print_block_indented(b2, 0, True)
