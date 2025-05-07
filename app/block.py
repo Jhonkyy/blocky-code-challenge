@@ -217,7 +217,22 @@ class Block:
         <top_left> is the (x, y) coordinates of the top left corner of
         this Block.  <size> is the height and width of this Block.
         """
-        pass
+        self.position = top_left
+        self.size = size
+
+        if self.children:
+            half = size // 2
+
+            positions = [
+                (top_left[0] + half, top_left[1]),  # Arriba derecha
+                (top_left[0], top_left[1]),  # Arriba izquierda
+                (top_left[0], top_left[1] + half),  # Abajo izquierda
+                (top_left[0] + half, top_left[1] + half)  # Abajo derecha
+            ]
+
+
+            for child, pos in zip(self.children, positions):
+                child.update_block_locations(pos, half)
 
     def get_selected_block(self, location: Tuple[int, int], level: int) \
             -> 'Block':
