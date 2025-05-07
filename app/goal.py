@@ -51,8 +51,18 @@ class BlobGoal(Goal):
     """
 
     def score(self, board: Block) -> int:
-        """Return a placeholder score for this goal."""
-        return 148
+        """Return the score for this goal on the given board."""
+        flattened = board.flatten()
+        visited = [[-1 for _ in range(len(flattened))] for _ in range(len(flattened))]
+        max_blob_size = 0
+
+        for i in range(len(flattened)):-
+            for j in range(len(flattened)):
+                if visited[i][j] == -1:  # Not visited
+                    blob_size = self._undiscovered_blob_size((i, j), flattened, visited)
+                    max_blob_size = max(max_blob_size, blob_size)
+
+        return max_blob_size
 
     def description(self) -> str:
         """Return a description of this goal."""
@@ -78,7 +88,22 @@ class BlobGoal(Goal):
         Update <visited> so that all cells that are visited are marked with
         either 0 or 1.
         """
-        pass
+        x, y = pos
+        if not (0 <= x < len(board) and 0 <= y < len(board)):
+            return 0
+        if visited[x][y] != -1:
+            return 0
+        if board[x][y] != self.colour:
+            visited[x][y] = 0
+            return 0
+
+        visited[x][y] = 1
+        size = 1  # Count this cell
+        # Check neighbors (up, down, left, right)
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            size += self._undiscovered_blob_size((x + dx, y + dy), board, visited)
+
+        return size
 
 
 class PerimeterGoal(Goal):
