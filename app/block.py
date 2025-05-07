@@ -149,49 +149,43 @@ class Block:
     def swap(self, direction: int) -> None:
         """Swap the child Blocks of this Block.
 
-        If <direction> is 1, swap vertically.  If <direction> is 0, swap
+        If <direction> is 1, swap vertically. If <direction> is 0, swap
         horizontally. If this Block has no children, do nothing.
         """
         if not self.children:
             return
-        if direction == 0:
-            self.children[0], self.children[3] = self.children[3], self.children[0]
-        if direction == 1:
-            self.children[1], self.children[2] = self.children[2], self.children[1]
 
-        for child in self.children:
-            child.swap(direction)
+        if direction == 0:  # Horizontal swap
+            self.children[0], self.children[1] = self.children[1], self.children[0]
+            self.children[2], self.children[3] = self.children[3], self.children[2]
+        elif direction == 1:  # Vertical swap
+            self.children[0], self.children[2] = self.children[2], self.children[0]
+            self.children[1], self.children[3] = self.children[3], self.children[1]
 
+        self.update_block_locations(self.position, self.size)
 
     def rotate(self, direction: int) -> None:
         """Rotate this Block and all its descendants.
 
-        If <direction> is 1, rotate clockwise.  If <direction> is 3, rotate
+        If <direction> is 1, rotate clockwise. If <direction> is 3, rotate
         counterclockwise. If this Block has no children, do nothing.
         """
         if not self.children:
             return
 
-        #clockwise
-        if direction == 1:
-            self.children[0], self.children[3], self.children[2], self.children[1] = \
-            self.children[1], self.children[0], self.children[3], self.children[2]
+        if direction == 1:  # Clockwise
+            self.children = [self.children[3], self.children[0], self.children[1], self.children[2]]
+        elif direction == 3:  # Counterclockwise
+            self.children = [self.children[1], self.children[2], self.children[3], self.children[0]]
 
-        #counterclockwise
-        elif direction == 3:
-            self.children[0], self.children[1], self.children[2], self.children[3] = \
-            self.children[3], self.children[0], self.children[1], self.children[2]
-
-        for child in self.children:
-            child.rotate(direction)
+        self.update_block_locations(self.position, self.size)
 
     def smash(self) -> bool:
         """Smash this block.
 
-        If this Block can be smashed,
-        randomly generating four new child Blocks for it.  (If it already
-        had child Blocks, discard them.)
-        Ensure that the RI's of the Blocks remain satisfied.
+        If this Block can be smashed, randomly generate four new child Blocks
+        for it. If it already had child Blocks, discard them. Ensure that the
+        RI's of the Blocks remain satisfied.
 
         A Block can be smashed iff it is not the top-level Block and it
         is not already at the level of the maximum depth.
@@ -202,18 +196,14 @@ class Block:
             return False
 
         self.children = []
-
-        new_children = []
         for _ in range(4):
-            colour = random.choice(COLOUR_LIST)
-            child = Block(self.level + 1, colour)
+            child = Block(self.level + 1, random.choice(COLOUR_LIST))
             child.max_depth = self.max_depth
             child.parent = self
-            new_children.append(child)
-
-        self.children = new_children
+            self.children.append(child)
 
         self.colour = None
+        self.update_block_locations(self.position, self.size)
         return True
 
     def update_block_locations(self, top_left: Tuple[int, int],
