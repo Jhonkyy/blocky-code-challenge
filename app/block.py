@@ -288,6 +288,18 @@ class Block:
                     col.append(self.colour)
             return m
 
+        top_right = self.children[0].flatten()
+        top_left = self.children[1].flatten()
+        bottom_left = self.children[2].flatten()
+        bottom_right = self.children[3].flatten()
+
+        half = length // 2
+
+        for i in range(half):
+            m[i].extend(top_left[i] + bottom_left[i])
+        for i in range(half, length):
+            m[i].extend(top_right[i - half] + bottom_right[i - half])
+
         return m
 
 def random_init(level: int, max_depth: int) -> 'Block':
