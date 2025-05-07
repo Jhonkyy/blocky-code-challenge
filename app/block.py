@@ -13,7 +13,7 @@ This file contains the Block class, the main data structure used in the game.
 from typing import Optional, Tuple, List
 import random
 import math
-from renderer import COLOUR_LIST, TEMPTING_TURQUOISE, BLACK, colour_name
+from app.renderer import COLOUR_LIST, TEMPTING_TURQUOISE, BLACK, colour_name
 
 
 HIGHLIGHT_COLOUR = TEMPTING_TURQUOISE
@@ -135,14 +135,18 @@ class Block:
         size = self.size
 
         if not self.children:
+            # Agregar el rectángulo del color del bloque
             rects.append((self.colour, (x, y), (size, size), 0))
-            rects.append((FRAME_COLOUR, (x, y), (size, size), 5))
+            # Agregar el marco del bloque
+            rects.append((FRAME_COLOUR, (x, y), (size, size), 3))
         else:
+            # Recursivamente agregar los rectángulos de los hijos
             for child in self.children:
                 rects.extend(child.rectangles_to_draw())
 
         if self.highlighted:
-            rects.append((HIGHLIGHT_COLOUR, (x, y), (size, size), 7))
+            # Agregar el marco de resaltado si el bloque está resaltado
+            rects.append((HIGHLIGHT_COLOUR, (x, y), (size, size), 5))
 
         return rects
 
@@ -173,12 +177,18 @@ class Block:
         if not self.children:
             return
 
-        if direction == 1:  # Clockwise
+        # Reordenar los hijos según la dirección de rotación
+        if direction == 1:  # Rotación en sentido horario
             self.children = [self.children[3], self.children[0], self.children[1], self.children[2]]
-        elif direction == 3:  # Counterclockwise
+        elif direction == 3:  # Rotación en sentido antihorario
             self.children = [self.children[1], self.children[2], self.children[3], self.children[0]]
 
+        # Actualizar las posiciones y tamaños de los bloques hijos
         self.update_block_locations(self.position, self.size)
+
+        # Aplicar la rotación recursivamente a los hijos
+        for child in self.children:
+            child.rotate(direction)
 
     def smash(self) -> bool:
         """Smash this block.
@@ -234,39 +244,45 @@ class Block:
             for child, pos in zip(self.children, positions):
                 child.update_block_locations(pos, half)
 
-    def get_selected_block(self, location: Tuple[int, int], level: int) \
-            -> 'Block':
+    def get_selected_block(self, location: Tuple[int, int], level: int) -> 'Block':
         """Return the Block within this Block that includes the given location
-        and is at the given level. If the level specified is lower than
-        the lowest block at the specified location, then return the block
-        at the location with the closest level value.
-
-        <location> is the (x, y) coordinates of the location on the window
-        whose corresponding block is to be returned.
-        <level> is the level of the desired Block.  Note that
-        if a Block includes the location (x, y), and that Block is subdivided,
-        then one of its four children will contain the location (x, y) also;
-        this is why <level> is needed.
-
-        Preconditions:
-        - 0 <= level <= max_depth
-        """
-        pass
+        and is at the given level."""
+        x, y = location
+        if level == self.level or not self.children:
+            return self
+        half = self.size // 2
+        if x >= self.position[0] + half:
+            if y >= self.position[1] + half:
+                return self.children[3].get_selected_block(location, level)  # Lower-right
+            else:
+                return self.children[0].get_selected_block(location, level)  # Upper-right
+        else:
+            if y >= self.position[1] + half:
+                return self.children[2].get_selected_block(location, level)  # Lower-left
+            else:
+                return self.children[1].get_selected_block(location, level)  # Upper-left
 
     def flatten(self) -> List[List[Tuple[int, int, int]]]:
         """Return a two-dimensional list representing this Block as rows
-        and columns of unit cells.
+        and columns of unit cells."""
+        size = int(2 ** (self.max_depth - self.level))  # Asegurar que size sea un entero
+        grid = [[None for _ in range(size)] for _ in range(size)]
 
-        Return a list of lists L, where,
-        for 0 <= i, j < 2^{max_depth - self.level}
-            - L[i] represents column i and
-            - L[i][j] represents the unit cell at column i and row j.
-        Each unit cell is represented by 3 ints for the colour
-        of the block at the cell location[i][j]
+        if not self.children:
+            for i in range(size):
+                for j in range(size):
+                    grid[i][j] = self.colour
+        else:
+            half = size // 2
+            grids = [child.flatten() for child in self.children]
+            for i in range(half):
+                for j in range(half):
+                    grid[i][j + half] = grids[0][i][j]  # Upper-right
+                    grid[i][j] = grids[1][i][j]         # Upper-left
+                    grid[i + half][j] = grids[2][i][j]  # Lower-left
+                    grid[i + half][j + half] = grids[3][i][j]  # Lower-right
 
-        L[0][0] represents the unit cell in the upper left corner of the Block.
-        """
-        pass
+        return grid
 
 
 def random_init(level: int, max_depth: int) -> 'Block':

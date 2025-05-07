@@ -16,10 +16,11 @@ can call to try playing the game in several different configurations.
 """
 import random
 from typing import List
-from block import Block, random_init
-from goal import BlobGoal, PerimeterGoal
-from player import Player, HumanPlayer, RandomPlayer, SmartPlayer
-from renderer import Renderer, COLOUR_LIST, colour_name, BOARD_WIDTH
+from app.block import Block, random_init
+from app.goal import BlobGoal, PerimeterGoal
+from app.player import Player, HumanPlayer, RandomPlayer, SmartPlayer
+from app.renderer import Renderer, COLOUR_LIST, colour_name, BOARD_WIDTH
+import math  # Agregar esta línea para evitar el NameError en random_init
 
 
 class Game:
@@ -173,3 +174,12 @@ if __name__ == '__main__':
     auto_game()
     # two_player_game()
     # solitaire_game()
+
+def random_init(level: int, max_depth: int) -> Block:
+    """Return a randomly-generated Block with level <level> and subdivided
+    to a maximum depth of <max_depth>."""
+    if level == max_depth or random.random() >= math.exp(-0.25 * level):
+        return Block(level, random.choice(COLOUR_LIST))
+    else:
+        children = [random_init(level + 1, max_depth) for _ in range(4)]
+        return Block(level, children=children)

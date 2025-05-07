@@ -12,7 +12,7 @@ This file contains the Goal class hierarchy.
 """
 
 from typing import List, Tuple
-from block import Block
+from app.block import Block
 
 
 class Goal:
@@ -56,7 +56,7 @@ class BlobGoal(Goal):
         visited = [[-1 for _ in range(len(flattened))] for _ in range(len(flattened))]
         max_blob_size = 0
 
-        for i in range(len(flattened)):-
+        for i in range(len(flattened)):
             for j in range(len(flattened)):
                 if visited[i][j] == -1:  # Not visited
                     blob_size = self._undiscovered_blob_size((i, j), flattened, visited)
@@ -112,8 +112,29 @@ class PerimeterGoal(Goal):
     """
 
     def score(self, board: Block) -> int:
-        """Return a placeholder score for this goal."""
-        return 148
+        """
+        Calculate the score for this goal based on the number of unit cells
+        of the target colour that are on the perimeter of the board.
+        """
+        flattened = board.flatten()
+        size = len(flattened)
+        count = 0
+
+        # Revisar los bordes superior e inferior
+        for i in range(size):
+            if flattened[0][i] == self.colour:  # Borde superior
+                count += 1
+            if flattened[size - 1][i] == self.colour:  # Borde inferior
+                count += 1
+
+        # Revisar los bordes izquierdo y derecho
+        for i in range(size):
+            if flattened[i][0] == self.colour:  # Borde izquierdo
+                count += 1
+            if flattened[i][size - 1] == self.colour:  # Borde derecho
+                count += 1
+
+        return count
 
     def description(self) -> str:
         """Return a description of this goal."""

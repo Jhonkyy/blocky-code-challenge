@@ -14,9 +14,9 @@ This file contains the player class hierarchy.
 import random
 from typing import Optional
 import pygame
-from renderer import Renderer
-from block import Block
-from goal import Goal
+from app.renderer import Renderer
+from app.block import Block
+from app.goal import Goal
 
 TIME_DELAY = 600
 
@@ -196,6 +196,118 @@ class HumanPlayer(Player):
                     # un-highlight the selected block
                     self._selected_block.highlighted = False
                     return 0
+
+
+class RandomPlayer(Player):
+    """A random player that makes random moves."""
+
+    def make_move(self, board: Block) -> int:
+        """Choose a random move on the given board and apply it."""
+        import random
+
+        # Choose a random block
+        block = board.get_selected_block(
+            (random.randint(0, board.size), random.randint(0, board.size)),
+            random.randint(0, board.max_depth)
+        )
+
+        # Highlight the block and draw the board
+        block.highlighted = True
+        self.renderer.draw(board, self.id)
+        pygame.time.wait(TIME_DELAY)
+
+        # Choose a random action
+        action = random.choice(["rotate_cw", "rotate_ccw", "swap_h", "swap_v", "smash"])
+        if action == "rotate_cw":
+            block.rotate(1)
+        elif action == "rotate_ccw":
+            block.rotate(3)
+        elif action == "swap_h":
+            block.swap(0)
+        elif action == "swap_v":
+            block.swap(1)
+        elif action == "smash" and block.smash():
+            pass  # Smash is applied only if valid
+
+        # Remove highlight and redraw the board
+        block.highlighted = False
+        self.renderer.draw(board, self.id)
+        return 0
+
+
+class SmartPlayer(Player):
+    """A smart player that evaluates moves and chooses the best one."""
+
+    def __init__(self, renderer: Renderer, player_id: int, goal: Goal, difficulty: int) -> None:
+        """Initialize this SmartPlayer with the given difficulty level."""
+        super().__init__(renderer, player_id, goal)
+        self.difficulty = difficulty
+
+    def make_move(self, board: Block) -> int:
+        """Evaluate possible moves and choose the best one."""
+        import random
+
+        # Determine the number of moves to evaluate based on difficulty
+        moves_to_evaluate = min(150, [5, 10, 25, 50, 100, 150][min(self.difficulty, 5)])
+        best_score = -1
+        best_move = None
+        best_block = None
+
+        for _ in range(moves_to_evaluate):
+            # Choose a random block
+            block = board.get_selected_block(
+                (random.randint(0, board.size), random.randint(0, board.size)),
+                random.randint(0, board.max_depth)
+            )
+
+            # Choose a random action (excluding smash)
+            action = random.choice(["rotate_cw", "rotate_ccw", "swap_h", "swap_v"])
+            original_state = board.flatten()
+
+            # Apply the action
+            if action == "rotate_cw":
+                block.rotate(1)
+            elif action == "rotate_ccw":
+                block.rotate(3)
+            elif action == "swap_h":
+                block.swap(0)
+            elif action == "swap_v":
+                block.swap(1)
+
+            # Evaluate the score
+            score = self.goal.score(board)
+
+            # Undo the action
+            board.update_block_locations((0, 0), board.size)
+            for i, row in enumerate(original_state):
+                for j, colour in enumerate(row):
+                    board.flatten()[i][j] = colour
+
+            # Keep track of the best move
+            if score > best_score:
+                best_score = score
+                best_move = action
+                best_block = block
+
+        # Apply the best move
+        if best_block:
+            best_block.highlighted = True
+            self.renderer.draw(board, self.id)
+            pygame.time.wait(TIME_DELAY)
+
+            if best_move == "rotate_cw":
+                best_block.rotate(1)
+            elif best_move == "rotate_ccw":
+                best_block.rotate(3)
+            elif best_move == "swap_h":
+                best_block.swap(0)
+            elif best_move == "swap_v":
+                best_block.swap(1)
+
+            best_block.highlighted = False
+            self.renderer.draw(board, self.id)
+
+        return 0
 
 
 if __name__ == '__main__':
