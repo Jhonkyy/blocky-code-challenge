@@ -35,7 +35,7 @@ class Goal:
     def score(self, board: Block) -> int:
         """Return the current score for this goal on the given board.
 
-        The score is always greater than or equal to 0.
+        The score is always greater than or equal to 0
         """
         raise NotImplementedError
 

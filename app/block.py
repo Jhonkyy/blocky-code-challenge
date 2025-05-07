@@ -169,11 +169,7 @@ class Block:
         self.update_block_locations(self.position, self.size)
 
     def rotate(self, direction: int) -> None:
-        """Rotate this Block and all its descendants.
-
-        If <direction> is 1, rotate clockwise. If <direction> is 3, rotate
-        counterclockwise. If this Block has no children, do nothing.
-        """
+        """Rotate this Block and all its descendants."""
         if not self.children:
             return
 
@@ -275,7 +271,19 @@ class Block:
 
         L[0][0] represents the unit cell in the upper left corner of the Block.
         """
-        pass
+        size = int(2 ** (self.max_depth - self.level))  # Asegurar que size sea un entero
+        if not self.children:
+            # Si no tiene hijos, llenar con el color del bloque
+            return [[self.colour] * size for _ in range(size)]
+        else:
+            # Combinar las matrices de los hijos
+            top = [self.children[1].flatten(), self.children[0].flatten()]
+            bottom = [self.children[2].flatten(), self.children[3].flatten()]
+            return [
+                top[0][i] + top[1][i] for i in range(size // 2)
+            ] + [
+                bottom[0][i] + bottom[1][i] for i in range(size // 2)
+            ]
 
 
 def random_init(level: int, max_depth: int) -> 'Block':
@@ -289,29 +297,17 @@ def random_init(level: int, max_depth: int) -> 'Block':
     Precondition:
         level <= max_depth
     """
-    pass
+    if level == max_depth or random.random() > 0.5:
+        # Crear un bloque sin hijos con un color aleatorio
+        return Block(level, random.choice(COLOUR_LIST))
+    else:
+        # Crear un bloque con cuatro hijos
+        children = [random_init(level + 1, max_depth) for _ in range(4)]
+        return Block(level, children=children)
 
 
 def attributes_str(b: Block, verbose) -> str:
     """Return a str that is a concise representation of the attributes of <b>.
-
-    Include attributes position, size, and level.  If <verbose> is True,
-    also include highlighted, and max_depth.
-
-    Note: These are attributes that every Block has.
-    """
-    answer = f'pos={b.position}, size={b.size}, level={b.level}, '
-    if verbose:
-        answer += f'highlighted={b.highlighted}, max_depth={b.max_depth}'
-    return answer
-
-
-def print_block(b: Block, verbose=False) -> None:
-    """Print a text representation of Block <b>.
-
-    Include attributes position, size, and level.  If <verbose> is True,
-    also include highlighted, and max_depth.
-
     Precondition: b is not None.
     """
     print_block_indented(b, 0, verbose)
